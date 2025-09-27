@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import logging
 from app.config import settings
+from app.services.gemini_service import gemini_service
 
 # Import routers directly to avoid circular imports
 from app.api.documents import router as documents_router
@@ -69,7 +70,7 @@ async def startup_event():
     
     # Initialize services with better logging
     from app.services.gemini_service import gemini_service
-    gemini_service.initialize()
+    # gemini_service()
 
     if gemini_service.enabled:
         logger.info("✅ Gemini service initialized successfully")

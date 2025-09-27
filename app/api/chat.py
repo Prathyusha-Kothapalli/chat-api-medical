@@ -25,7 +25,7 @@ async def chat_message(chat_message: ChatMessage):
             'message': chat_message.message,
             'context_documents': chat_message.context_documents
         })
-        print(response_data)
+        print("Response data:",response_data)
         return ChatResponse(**response_data)
         
     except HTTPException:

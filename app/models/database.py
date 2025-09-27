@@ -9,10 +9,12 @@ logger = logging.getLogger(__name__)
 
 class VectorDatabase:
     def __init__(self):
-        self.client = chromadb.PersistentClient(
-            path=settings.CHROMA_DB_PATH,
-            settings=ChromaSettings(anonymized_telemetry=False)
-        )
+        # self.client = chromadb.PersistentClient(
+        #     path=settings.CHROMA_DB_PATH,
+        #     settings=ChromaSettings(anonymized_telemetry=False)
+        # )
+        self.client = chromadb.Client()
+
         self.collection = self.client.get_or_create_collection(
             name=settings.COLLECTION_NAME,
             metadata={"description": "Healthcare documents embedding store"}

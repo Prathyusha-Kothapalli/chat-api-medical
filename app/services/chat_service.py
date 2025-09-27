@@ -12,9 +12,34 @@ logger = logging.getLogger(__name__)
 
 class ChatService:
     def __init__(self):
+        
         self.conversation_history = {}
         self.medical_disclaimer = "Disclaimer: This AI assistant provides information based on uploaded documents and should not be used for medical diagnosis or treatment decisions. Please consult with qualified healthcare professionals for medical advice."
     
+    
+    def get_conversation_history(self, session_id: str):
+        """Return chat history for a session."""
+        return self.conversation_history.get(session_id)
+
+    def delete_conversation_history(self, session_id: str):
+        """Delete chat history for a session."""
+        if session_id in self.conversation_history:
+            del self.conversation_history[session_id]
+            return True
+        return False
+
+    def add_message(self, session_id: str, role: str, message: str):
+        """Add a message to the chat history."""
+        if session_id not in self.conversation_history:
+            self.conversation_history[session_id] = {
+                "created_at": datetime.utcnow().isoformat(),
+                "messages": []
+            }
+        self.conversation_history[session_id]["messages"].append({
+            "role": role,
+            "message": message,
+            "timestamp": datetime.utcnow().isoformat()
+        })
     async def process_message(self, chat_message: Dict) -> Dict[str, Any]:
         """Process chat message using RAG pipeline with Gemini"""
         start_time = time.time()
