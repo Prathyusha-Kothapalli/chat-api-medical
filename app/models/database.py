@@ -9,10 +9,7 @@ logger = logging.getLogger(__name__)
 
 class VectorDatabase:
     def __init__(self):
-        # self.client = chromadb.PersistentClient(
-        #     path=settings.CHROMA_DB_PATH,
-        #     settings=ChromaSettings(anonymized_telemetry=False)
-        # )
+        
         self.client = chromadb.Client()
 
         self.collection = self.client.get_or_create_collection(
@@ -22,7 +19,7 @@ class VectorDatabase:
         logger.info(f"✅ Vector database initialized at {settings.CHROMA_DB_PATH}")
     
     def add_documents(self, documents: List[str], metadatas: List[Dict], ids: List[str]):
-        """Add documents to the vector database"""
+       
         try:
             self.collection.add(
                 documents=documents,
@@ -35,7 +32,7 @@ class VectorDatabase:
             raise
     
     def search(self, query: str, n_results: int = 5, document_ids: Optional[List[str]] = None) -> List[Dict]:
-        """Search for similar documents"""
+      
         try:
             logger.info(f"🔍 Searching for: '{query}' (n_results: {n_results})")
             
@@ -62,7 +59,7 @@ class VectorDatabase:
             return []
     
     def _format_search_results(self, results) -> List[Dict]:
-        """Format search results into a structured format"""
+       
         formatted_results = []
         
         if results and results['documents'] and results['documents'][0]:
@@ -78,7 +75,7 @@ class VectorDatabase:
         return formatted_results
     
     def delete_documents(self, document_id: str):
-        """Delete all chunks for a specific document"""
+       
         try:
             self.collection.delete(where={"document_id": document_id})
             logger.info(f"✅ Deleted documents for ID: {document_id}")
@@ -86,5 +83,4 @@ class VectorDatabase:
             logger.error(f"❌ Error deleting documents: {e}")
             raise
 
-# Global vector database instance
 vector_db = VectorDatabase()

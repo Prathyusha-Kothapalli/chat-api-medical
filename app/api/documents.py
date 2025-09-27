@@ -13,7 +13,6 @@ from app.config import settings
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-# In-memory storage for demo
 documents_store = {}
 
 @router.post("/upload", response_model=DocumentResponse, status_code=status.HTTP_201_CREATED)
@@ -21,9 +20,7 @@ async def upload_document(
     file: UploadFile = File(...),
     description: str = None
 ):
-    """Upload and process a healthcare document"""
     
-    # Validate file type more flexibly
     file_extension = os.path.splitext(file.filename)[1].lower()
     allowed_extensions = {'.pdf', '.docx', '.txt'}
 
@@ -33,7 +30,6 @@ async def upload_document(
             detail=f"Unsupported file extension. Allowed: PDF, DOCX, TXT. Got: {file_extension}"
         )
     
-    # Validate file size
     if file.size > settings.MAX_FILE_SIZE:
         raise HTTPException(
             status_code=400,
@@ -41,16 +37,12 @@ async def upload_document(
         )
     
     try:
-        # Generate unique document ID
         document_id = str(uuid.uuid4())
         
-        # Save file
         file_path = await document_processor.save_upload_file(file)
         
-        # Determine file type for processing
         file_type = document_processor._get_file_type(file.filename)
         
-        # Store initial document info
         documents_store[document_id] = {
             'id': document_id,
             'filename': file.filename,
@@ -62,7 +54,6 @@ async def upload_document(
             'description': description
         }
         
-        # Process document asynchronously
         await _process_document_background(document_id)
         
         return DocumentResponse(
@@ -81,22 +72,20 @@ async def upload_document(
         raise HTTPException(status_code=500, detail="Failed to upload document")
 
 async def _process_document_background(document_id: str):
-    """Process document in background"""
     try:
         doc_info = documents_store[document_id]
         doc_info['processing_status'] = ProcessingStatus.PROCESSING
         
-        # Extract text
         text = await document_processor.extract_text(doc_info['file_path'], doc_info['file_type'])
         cleaned_text = document_processor.clean_text(text)
         
-        # Chunk text
+        
         chunks = document_processor.chunk_text(cleaned_text, settings.CHUNK_SIZE, settings.CHUNK_OVERLAP)
         
-        # Store in vector database
+       
         embedding_service.store_document_chunks(document_id, chunks)
         
-        # Update document info
+     
         doc_info['processing_status'] = ProcessingStatus.COMPLETED
         doc_info['extracted_text'] = cleaned_text
         doc_info['extracted_text_length'] = len(cleaned_text)
@@ -112,7 +101,7 @@ async def _process_document_background(document_id: str):
 
 @router.get("/", response_model=List[DocumentResponse])
 async def list_documents():
-    """List all uploaded documents"""
+    
     return [
         DocumentResponse(
             id=doc_id,
@@ -129,7 +118,6 @@ async def list_documents():
 
 @router.get("/{document_id}", response_model=DocumentResponse)
 async def get_document(document_id: str):
-    """Get specific document information"""
     if document_id not in documents_store:
         raise HTTPException(status_code=404, detail="Document not found")
     
@@ -147,21 +135,17 @@ async def get_document(document_id: str):
 
 @router.delete("/{document_id}")
 async def delete_document(document_id: str):
-    """Delete a document and its embeddings"""
     if document_id not in documents_store:
         raise HTTPException(status_code=404, detail="Document not found")
     
     try:
         doc_info = documents_store[document_id]
         
-        # Remove document file from filesystem
         if os.path.exists(doc_info['file_path']):
             os.remove(doc_info['file_path'])
         
-        # Remove from vector database
         embedding_service.delete_document_chunks(document_id)
         
-        # Remove from in-memory store
         del documents_store[document_id]
         
         return {"message": "Document deleted successfully"}

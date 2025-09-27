@@ -8,8 +8,7 @@ class DocumentChunker:
         self.chunk_overlap = settings.CHUNK_OVERLAP
     
     def chunk_by_paragraphs(self, text: str) -> List[Dict[str, Any]]:
-        """Chunk document by paragraphs with medical section awareness"""
-        # Split by multiple newlines
+        
         paragraphs = re.split(r'\n\s*\n', text.strip())
         chunks = []
         current_chunk = ""
@@ -20,33 +19,27 @@ class DocumentChunker:
             if not paragraph:
                 continue
             
-            # Check for medical section headers
             section_info = self._detect_medical_section(paragraph)
             
             if section_info:
-                # Save current chunk if it exists
                 if current_chunk:
                     chunks.append({
                         'text': current_chunk.strip(),
                         'metadata': current_metadata.copy()
                     })
                 
-                # Start new chunk with section info
                 current_chunk = paragraph + "\n"
                 current_metadata.update(section_info)
             else:
-                # Check if adding this paragraph would exceed chunk size
                 if len(current_chunk + paragraph) > self.chunk_size and current_chunk:
                     chunks.append({
                         'text': current_chunk.strip(),
                         'metadata': current_metadata.copy()
                     })
-                    # Start new chunk with overlap
                     current_chunk = self._get_overlap_text(current_chunk) + paragraph + "\n"
                 else:
                     current_chunk += paragraph + "\n"
         
-        # Add the final chunk
         if current_chunk.strip():
             chunks.append({
                 'text': current_chunk.strip(),
@@ -75,7 +68,6 @@ class DocumentChunker:
         return {}
     
     def _get_overlap_text(self, text: str) -> str:
-        """Get overlapping text for chunk continuity"""
         sentences = re.split(r'[.!?]+', text)
         if len(sentences) <= 1:
             return text[-self.chunk_overlap:] if len(text) > self.chunk_overlap else text

@@ -13,7 +13,6 @@ router = APIRouter()
     description="Check if the API service is healthy and running"
 )
 async def health_check():
-    """Basic health check endpoint"""
     return HealthCheck(
         status="healthy",
         timestamp=datetime.now(),
@@ -26,7 +25,6 @@ async def health_check():
     description="Get detailed status information about the service"
 )
 async def service_status():
-    """Detailed service status information"""
     process = psutil.Process(os.getpid())
     memory_info = process.memory_info()
     

@@ -18,7 +18,6 @@ class EmbeddingService:
             raise
 
     def generate_embeddings(self, texts: List[str]) -> List[List[float]]:
-        """Generate embeddings for a list of texts"""
         try:
             embeddings = self.embedding_model.encode(texts).tolist()
             return embeddings
@@ -27,7 +26,6 @@ class EmbeddingService:
             raise
     
     def store_document_chunks(self, document_id: str, chunks: List[Dict[str, Any]]):
-        """Store document chunks in vector database"""
         try:
             texts = [chunk['text'] for chunk in chunks]
             embeddings = self.generate_embeddings(texts)
@@ -54,7 +52,6 @@ class EmbeddingService:
             raise
     
     def search_similar_chunks(self, query: str, n_results: int = 5, document_ids: List[str] = None) -> List[Dict[str, Any]]:
-        """Search for similar chunks using semantic similarity"""
         try:
             query_embedding = self.generate_embeddings([query])[0]
             
@@ -83,13 +80,10 @@ class EmbeddingService:
             raise
     
     def delete_document_chunks(self, document_id: str):
-        """Delete all chunks for a specific document from ChromaDB"""
         try:
-            # Get all chunks for this document
             results = self.collection.get(where={"document_id": document_id})
             
             if results['ids']:
-                # Delete chunks by their IDs
                 self.collection.delete(ids=results['ids'])
                 logger.info(f"Deleted {len(results['ids'])} chunks for document {document_id}")
             else:
@@ -99,5 +93,4 @@ class EmbeddingService:
             logger.error(f"Error deleting document chunks for {document_id}: {str(e)}")
             raise
 
-# Create a single instance
 embedding_service = EmbeddingService()

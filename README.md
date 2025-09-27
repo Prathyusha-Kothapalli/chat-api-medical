@@ -1,38 +1,48 @@
 # Healthcare Document Chat API
 
-A FastAPI-based backend service that processes healthcare documents and provides intelligent chat capabilities using Google Gemini.
+A FastAPI backend service that processes healthcare documents and enables intelligent chat capabilities using Google Gemini AI with RAG (Retrieval-Augmented Generation).
 
 ## Features
 
-- Document upload and processing (PDF, DOCX, TXT)
-- Text extraction and cleaning
-- Vector embeddings with ChromaDB
-- RAG pipeline with Google Gemini
-- Medical terminology handling
-- Conversation history management
+### ✅ Document Processing
+- **File Upload**: Support for PDF, DOCX, and TXT files
+- **Text Extraction**: Automated text extraction from multiple formats
+- **Intelligent Chunking**: Semantic chunking with configurable size/overlap
+- **Text Cleaning**: Medical abbreviation expansion and normalization
 
-## Setup Instructions
+### ✅ AI/ML Capabilities
+- **Vector Embeddings**: Sentence-transformers for document embeddings
+- **RAG Pipeline**: Retrieval-Augmented Generation with Google Gemini
+- **Similarity Search**: ChromaDB vector database for efficient retrieval
+- **Medical NER**: Extraction of medications, lab results, conditions, and vital signs
 
-### 1. Prerequisites
+### ✅ Chat Interface
+- **Session Management**: Conversation history per session
+- **Context-Aware Responses**: Document-specific answers with sources
+- **Confidence Scoring**: Relevance-based confidence metrics
+- **Multi-Document Support**: Query across multiple uploaded documents
 
-- Python 3.9+
-- Gemini API key
+### ✅ API Endpoints
+- **Documents**: Upload, list, view, and delete medical documents
+- **Chat**: Send messages, get history, clear conversations
+- **Health**: Service status and health checks
 
-### 2. Installation
+## Quick Start
 
+### Installation
 ```bash
-# Clone the repository
-git clone <repository-url>
+# Clone and setup
+git clone <repository>
 cd healthcare-chat-api
 
 # Create virtual environment
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
+python -m venv myenv
+source myenv/bin/activate  # Linux/Mac
 # venv\Scripts\activate  # Windows
 
 # Install dependencies
 pip install -r requirements.txt
 
-# Set up environment variables
+# Set up environment
 cp .env.example .env
-# Edit .env with your Gemini API key
+# Edit .env with your Google API key

@@ -18,18 +18,16 @@ class ChatService:
     
     
     def get_conversation_history(self, session_id: str):
-        """Return chat history for a session."""
+        
         return self.conversation_history.get(session_id)
 
     def delete_conversation_history(self, session_id: str):
-        """Delete chat history for a session."""
         if session_id in self.conversation_history:
             del self.conversation_history[session_id]
             return True
         return False
 
     def add_message(self, session_id: str, role: str, message: str):
-        """Add a message to the chat history."""
         if session_id not in self.conversation_history:
             self.conversation_history[session_id] = {
                 "created_at": datetime.utcnow().isoformat(),
@@ -41,7 +39,6 @@ class ChatService:
             "timestamp": datetime.utcnow().isoformat()
         })
     async def process_message(self, chat_message: Dict) -> Dict[str, Any]:
-        """Process chat message using RAG pipeline with Gemini"""
         start_time = time.time()
         session_id = chat_message['session_id']
         user_message = chat_message['message']
@@ -50,18 +47,14 @@ class ChatService:
         try:
             logger.info(f"💬 Processing message: '{user_message}'")
             
-            # Step 1: Retrieve relevant context
             context_results = self._retrieve_context(user_message, context_documents)
             logger.info(f"📚 Retrieved {len(context_results)} context chunks")
             
-            # Step 2: Generate response using RAG with Gemini
             response = await self._generate_rag_response(user_message, context_results)
             logger.info(f"🤖 Generated response: {response[:100]}...")
             print("................response",response)
-            # Step 3: Update conversation history
             self._update_conversation_history(session_id, user_message, response)
             
-            # Step 4: Calculate confidence score
             confidence_score = self._calculate_confidence(context_results, response)
             
             processing_time = time.time() - start_time
@@ -82,14 +75,11 @@ class ChatService:
     
     def _retrieve_context(self, query: str, document_ids: Optional[List[str]] = None) -> List[Dict]:
         """Retrieve relevant context using vector similarity search"""
-        # Expand medical abbreviations in query for better search
         expanded_query = medical_ner.expand_abbreviations(query)
         logger.info(f"🔍 Expanded query: '{expanded_query}'")
         
-        # Search for relevant chunks
         results = vector_db.search(expanded_query, n_results=5, document_ids=document_ids)
         
-        # Filter and rank results
         filtered_results = self._filter_relevant_results(results, query)
         logger.info(f"✅ Filtered to {len(filtered_results)} relevant results")
         
@@ -101,19 +91,17 @@ class ChatService:
             logger.warning("⚠️ No results found from vector search")
             return []
         
-        # Simple relevance filtering
         relevant_results = []
         
         for result in results:
             relevance_score = self._calculate_relevance_score(result, query)
-            if relevance_score > 0.1:  # Threshold for relevance
+            if relevance_score > 0.1:
                 result['relevance_score'] = relevance_score
                 relevant_results.append(result)
         
-        # Sort by relevance score
         relevant_results.sort(key=lambda x: x.get('relevance_score', 0), reverse=True)
         
-        return relevant_results[:3]  # Return top 3 most relevant results
+        return relevant_results[:3]  
     
     def _calculate_relevance_score(self, result: Dict, query: str) -> float:
         """Calculate relevance score between query and result"""
@@ -121,7 +109,7 @@ class ChatService:
         document_text = result['document'].lower()
         query_lower = query.lower()
         
-        # Basic keyword matching
+
         if any(keyword in document_text for keyword in ['medication', 'prescription', 'drug']):
             if any(keyword in query_lower for keyword in ['medication', 'prescription', 'drug']):
                 score += 0.3
@@ -134,7 +122,6 @@ class ChatService:
             if any(keyword in query_lower for keyword in ['diagnosis', 'condition']):
                 score += 0.3
         
-        # Length-based scoring (longer chunks might be more informative)
         score += min(len(document_text) / 1000, 0.1)
         
         return min(score, 1.0)
@@ -146,11 +133,9 @@ class ChatService:
             logger.warning("⚠️ No context results found, using fallback")
             return await self._generate_fallback_response(query)
         
-        # Build context from retrieved documents
         context_text = self._build_context_text(context_results)
         logger.info(f"📝 Built context with {len(context_text)} characters")
         
-        # Use Gemini for response generation
         response = await gemini_service.generate_response(query, context_text)
         return response
     
@@ -174,7 +159,6 @@ class ChatService:
     
     async def _generate_fallback_response(self, query: str) -> str:
         """Generate fallback response when no context is found"""
-        # Try using Gemini without specific context
         response = await gemini_service.generate_response(
             f"Please respond to this healthcare-related query: {query}. "
             "Note that no specific document context was found."
@@ -203,7 +187,6 @@ class ChatService:
         total_relevance = sum(result.get('relevance_score', 0) for result in context_results)
         avg_relevance = total_relevance / len(context_results)
         
-        # Adjust based on response quality
         quality_indicators = [
             len(response) > 50,
             any(keyword in response.lower() for keyword in ['medication', 'lab', 'result', 'diagnosis', 'patient']),
@@ -229,7 +212,6 @@ class ChatService:
             'type': 'message'
         })
         
-        # Limit history to last 50 messages
         if len(self.conversation_history[session_id]['messages']) > 50:
             self.conversation_history[session_id]['messages'] = self.conversation_history[session_id]['messages'][-50:]
 

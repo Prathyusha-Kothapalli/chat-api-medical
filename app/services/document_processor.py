@@ -15,7 +15,6 @@ class DocumentProcessor:
         self.upload_dir.mkdir(exist_ok=True)
     
     async def save_upload_file(self, file: UploadFile) -> str:
-        """Save uploaded file to disk and return file path"""
         file_path = self.upload_dir / file.filename
         
         async with aiofiles.open(file_path, 'wb') as f:
@@ -25,7 +24,6 @@ class DocumentProcessor:
         return str(file_path)
     
     def _get_file_type(self, filename: str) -> str:
-        """Determine file type from filename"""
         file_extension = os.path.splitext(filename)[1].lower()
         
         # Map extensions to content types
@@ -41,7 +39,6 @@ class DocumentProcessor:
             raise HTTPException(400, f"Unsupported file extension: {file_extension}")
     
     async def extract_text(self, file_path: str, file_type: str) -> str:
-        """Extract text from different file formats"""
         try:
             if file_type == "application/pdf":
                 return await self._extract_from_pdf(file_path)
@@ -56,7 +53,6 @@ class DocumentProcessor:
             raise HTTPException(500, f"Failed to extract text: {str(e)}")
     
     async def _extract_from_pdf(self, file_path: str) -> str:
-        """Extract text from PDF file"""
         text = ""
         try:
             with open(file_path, 'rb') as file:
@@ -71,7 +67,6 @@ class DocumentProcessor:
             raise Exception(f"PDF extraction error: {str(e)}")
     
     async def _extract_from_docx(self, file_path: str) -> str:
-        """Extract text from DOCX file"""
         try:
             doc = Document(file_path)
             text = ""
@@ -84,7 +79,6 @@ class DocumentProcessor:
             raise Exception(f"DOCX extraction error: {str(e)}")
     
     async def _extract_from_txt(self, file_path: str) -> str:
-        """Extract text from TXT file"""
         try:
             async with aiofiles.open(file_path, 'r', encoding='utf-8') as file:
                 return await file.read()
@@ -97,14 +91,11 @@ class DocumentProcessor:
             raise Exception(f"TXT extraction error: {str(e)}")
     
     def clean_text(self, text: str) -> str:
-        """Clean and normalize extracted text"""
         if not text:
             return ""
         
-        # Remove extra whitespace and normalize line breaks
         text = ' '.join(text.split())
         
-        # Basic medical abbreviation normalization
         medical_abbreviations = {
             'BP': 'Blood Pressure',
             'HR': 'Heart Rate',
@@ -145,5 +136,4 @@ class DocumentProcessor:
         
         return chunks
 
-# Create a single instance
 document_processor = DocumentProcessor()

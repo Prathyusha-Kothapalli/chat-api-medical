@@ -10,7 +10,6 @@ class MedicalNER:
         self.nlp = None
         self._initialize_spacy()
         
-        # Medical abbreviations dictionary
         self.medical_abbreviations = {
             'bp': 'blood pressure',
             'hr': 'heart rate',
@@ -34,7 +33,6 @@ class MedicalNER:
         }
     
     def _initialize_spacy(self):
-        """Initialize spaCy with fallback if model not available"""
         try:
             import spacy
             self.nlp = spacy.load(settings.SPACY_MODEL)
@@ -47,7 +45,6 @@ class MedicalNER:
             self.nlp = None
     
     def extract_medical_entities(self, text: str) -> Dict[str, List[Dict]]:
-        """Extract medical entities from text"""
         entities = {
             'medications': self._extract_medications(text),
             'conditions': self._extract_conditions(text),
@@ -60,10 +57,8 @@ class MedicalNER:
         return entities
     
     def _extract_medications(self, text: str) -> List[Dict]:
-        """Extract medication information using regex patterns"""
         medications = []
         
-        # Enhanced medication patterns
         patterns = [
             r'(\b[A-Z][a-z]+\b)\s*(\d+(?:\.\d+)?\s*(?:mg|mcg|g|ml|tablet|cap)s?)',
             r'(\b(?:Lisinopril|Metformin|Atorvastatin|Aspirin|Amoxicillin|Ibuprofen)\b.*?\d+.*?(?:mg|mcg))',
@@ -83,10 +78,8 @@ class MedicalNER:
         return medications
     
     def _extract_conditions(self, text: str) -> List[Dict]:
-        """Extract medical conditions"""
         conditions = []
         
-        # Common medical conditions pattern
         condition_patterns = [
             r'\b(hypertension|diabetes|asthma|arthritis|migraine|depression|anxiety)\b',
             r'\b(heart disease|kidney disease|liver disease|lung disease)\b',
@@ -106,10 +99,8 @@ class MedicalNER:
         return conditions
     
     def _extract_lab_results(self, text: str) -> List[Dict]:
-        """Extract laboratory results"""
         lab_results = []
         
-        # Enhanced lab test patterns
         patterns = [
             r'(\w+)\s*:\s*([\d.]+)\s*(mg/dL|g/dL|mmol/L|%|U/L)?\s*(?:\(.*?(\d+)\s*-\s*(\d+).*?\))?',
             r'(\w+)\s+([\d.]+)\s*(mg/dL|g/dL|mmol/L|%|U/L)',
@@ -132,7 +123,6 @@ class MedicalNER:
         """Extract vital signs"""
         vital_signs = []
         
-        # Blood pressure pattern
         bp_pattern = r'blood pressure:?\s*(\d+)\s*/\s*(\d+)\s*(mmHg)?'
         bp_matches = re.finditer(bp_pattern, text, re.IGNORECASE)
         for match in bp_matches:
@@ -143,7 +133,6 @@ class MedicalNER:
                 'unit': match.group(3) or 'mmHg'
             })
         
-        # Heart rate pattern
         hr_pattern = r'heart rate:?\s*(\d+)\s*(bpm)?'
         hr_matches = re.finditer(hr_pattern, text, re.IGNORECASE)
         for match in hr_matches:
@@ -156,7 +145,6 @@ class MedicalNER:
         return vital_signs
     
     def _extract_dates(self, text: str) -> List[Dict]:
-        """Extract dates using regex patterns"""
         dates = []
         
         date_patterns = [
@@ -176,7 +164,6 @@ class MedicalNER:
         return dates
     
     def _extract_measurements(self, text: str) -> List[Dict]:
-        """Extract various measurements"""
         measurements = []
         pattern = r'(\d+(?:\.\d+)?)\s*(kg|lb|cm|in|years?|y/o|cm|m)'
         matches = re.finditer(pattern, text, re.IGNORECASE)
@@ -189,7 +176,6 @@ class MedicalNER:
         return measurements
     
     def expand_abbreviations(self, text: str) -> str:
-        """Expand medical abbreviations in text"""
         words = text.split()
         expanded_words = []
         

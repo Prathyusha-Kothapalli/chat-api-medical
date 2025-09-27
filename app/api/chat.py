@@ -13,13 +13,10 @@ router = APIRouter()
     description="Send a message to chat with your healthcare documents"
 )
 async def chat_message(chat_message: ChatMessage):
-    """Send a message and get AI response with document context"""
     try:
-        # Validate session_id
         if not chat_message.session_id or not isinstance(chat_message.session_id, str):
             raise HTTPException(status_code=400, detail="Invalid session ID")
         
-        # Process the message using chat service (this handles everything internally)
         response_data = await chat_service.process_message({
             'session_id': chat_message.session_id,
             'message': chat_message.message,
@@ -40,7 +37,6 @@ async def chat_message(chat_message: ChatMessage):
     description="Retrieve conversation history for a session"
 )
 async def get_chat_history(session_id: str):
-    """Get conversation history for a session"""
     try:
         history = chat_service.get_conversation_history(session_id)
         if not history:
@@ -64,7 +60,6 @@ async def get_chat_history(session_id: str):
     description="Clear conversation history for a session"
 )
 async def clear_chat_history(session_id: str):
-    """Clear conversation history for a session"""
     try:
         success = chat_service.delete_conversation_history(session_id)
         if not success:
